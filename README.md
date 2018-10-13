@@ -1,5 +1,5 @@
 # User Guide for the Avimesa Group API (AMQP)
-*last updated 2018-Oct-9*
+*last updated 2018-Oct-13*
 
 ## Introduction
 This project contains the Avimesa Group API documentation.  The purpose of this documention is to describe the API available for the Avimesa Group clients. The Group API (AMQP) in general can be seen as a JSON based protocol that uses Avimesa-configured RabbitMQ for messaging and provides the ability to interface with the Avimesa system.
@@ -112,6 +112,13 @@ Client examples showing various use cases are available in source code form are 
 | Infrastructure Architecture | In this scope, represents software systems that facilitate account creation, maintenance and accounting bookkeeping of Device to Device Cloud transactions. |
 
 *Table 2*
+
+<a id="1.5-versions"></a>
+### 1.5 Versions
+| Version |Change |
+| --- | ---  |
+| 0.10 | Initial release on github|
+| 0.11 | Changed CMD 1XXX responses.  Instead of a generic "message" arrary of strings, the response is now a JSON object that is easier to consume |
 
 [Top](#toc)<br>
 <a id="2.-components"></a>
@@ -313,7 +320,7 @@ Requests to list the Devices in the Group.
 ```
 {
    "api_maj": 0,
-   "api_min": 10,
+   "api_min": 11,
    "cmd_id": 1002,
    "req_id": 123456
 }
@@ -333,16 +340,18 @@ Requests to list the Devices in the Group.
 ```
 {
     "api_maj": 0, 
-    "api_min": 10,
+    "api_min": 11,
     "cmd_id": 1003,
     "req_id": 123456,
     "response": {
         "error": 0,
-        "message": [
-            "20010db80000000053d371fffe53dc33",
-            "20010db80000000053d371fffe53dc34",
-            "20010db80000000053d371fffe53dc35" 
-         ]
+        "message": {
+            devices : [
+                "20010db80000000053d371fffe53dc33",
+                "20010db80000000053d371fffe53dc34",
+                "20010db80000000053d371fffe53dc35" 
+            ]
+        }
     } 
 }
 ```
@@ -358,8 +367,11 @@ Requests to list the Devices in the Group.
 | Name        | Type           | Required | Notes |
 | ---         | ---            | --- | --- |
 | error       | Number, uint32 | Yes | 0 for success, non-zero for error |
-| message     | Array          | Yes | Will contain an array of “Device ID” strings |
+| message     | Object         | Yes | (see next section) |
 
+| Name        | Type           | Required | Notes |
+| ---         | ---            | --- | --- |
+| devices     | Arrary         | Yes | An array of “Device ID” strings |
 
 [Top](#toc)<br>
 <a id="4.3-group-api"></a>
@@ -374,7 +386,7 @@ Requests to add a Device to the Group.
 ```
 {
     "api_maj": 0,
-    "api_min": 10,
+    "api_min": 11,
     "cmd_id": 1004,
     "req_id": 123456,
     "dev_id": "20010db800000000f7706ffffe1e34c6"
@@ -395,12 +407,15 @@ Requests to add a Device to the Group.
 ```
 {
     "api_maj": 0, 
-    "api_min": 10, 
+    "api_min": 11, 
     "cmd_id": 1003, 
     "req_id": 123456, 
     "response": {
         "error": 0,
-        "message": ["password: 2ff87d3a0d064d278ecff756aa57ebf6"]
+        "message": {
+            "device_id" : "20010db800000000f7706ffffe1e34c6"
+            "auth_key" : "2ff87d3a0d064d278ecff756aa57ebf6"
+        }
     }
 }
 ```
@@ -416,7 +431,13 @@ Requests to add a Device to the Group.
 | Name        | Type           | Required | Notes |
 | ---         | ---            | --- | --- |
 | error       | Number, uint32 | Yes | 0 for success, non-zero for error |
-| message     | Array          | Yes | The Authentication Key |
+| message     | Object         | Yes | (see next section) |
+
+
+| Name        | Type           | Required | Notes |
+| ---         | ---            | --- | --- |
+| dev_id      | String, 32 char lowercase, 0-9, a-f | Yes | The Device ID to added |
+| auth_key    | String         | Yes | The Authentication Key |
 
 [Top](#toc)<br>
 <a id="4.4-group-api"></a>
@@ -430,11 +451,11 @@ Requests to list a Device’s files.
 
 ```
 {
-"api_maj": 0,
-"api_min": 10,
-"cmd_id": 1006,
-"req_id": 123456,
-"dev_id": "20010db800000000f7706ffffe1e34c6"
+    "api_maj": 0,
+    "api_min": 11,
+    "cmd_id": 1006,
+    "req_id": 123456,
+    "dev_id": "20010db800000000f7706ffffe1e34c6"
 }
 ```
 
@@ -452,15 +473,25 @@ Requests to list a Device’s files.
 ```
 {
     "api_maj": 0, 
-    "api_min": 10, 
+    "api_min": 11, 
     "cmd_id": 1007, 
     "req_id": 123456,
     "response": {
         "error": 0, 
-        "message": [
-            "/scripts/script.js (590) (1536350169)", 
-            "/config/config.json (1169) (1536350193)"
-        ]
+        "message": {
+            "files" : [
+                {
+                    "path" : "/scripts/script.js",
+                    "size" : 590,
+                    "time" : 1536350169
+                },
+                {
+                    "path" : "/config/config.js",
+                    "size" : 1169,
+                    "time" : 1536350193
+                }
+            ]
+        }
     }
 }
 ```
@@ -476,7 +507,12 @@ Requests to list a Device’s files.
 | Name        | Type           | Required | Notes |
 | ---         | ---            | --- | --- |
 | error       | Number, uint32 | Yes | 0 for success, non-zero for error |
-| message     | Array          | Yes | Will contain an array of “file” strings with the path, size (bytes) and upload time (Linux time) |
+| message     | Object         | Yes | (see next section) |
+
+
+| Name        | Type           | Required | Notes |
+| ---         | ---            | --- | --- |
+| files       | Array          | Yes | Will contain an array of “file” strings with the path, size (bytes) and upload time (Linux time) |
 
 [Top](#toc)<br>
 <a id="4.5-group-api"></a>
@@ -491,7 +527,7 @@ Requests to upload a Device Drive Script file.
 ```
 {
     "api_maj": 0,
-    "api_min": 10,
+    "api_min": 11,
     "cmd_id": 1008,
     "req_id": 123456,
     "dev_id": "20010db800000000f7706ffffe1e34c6",
@@ -515,12 +551,11 @@ Requests to upload a Device Drive Script file.
 ```
 {
     "api_maj": 0,
-    "api_min": 10,
+    "api_min": 11,
     "cmd_id": 1009,
     "req_id": 123456,
     "response": {
         "error": 0, 
-        "message": []
     } 
 }
 ```
@@ -536,7 +571,13 @@ Requests to upload a Device Drive Script file.
 | Name        | Type           | Required | Notes |
 | ---         | ---            | --- | --- |
 | error       | Number, uint32 | Yes | 0 for success, non-zero for error |
-| message     | Array          | Yes | ... |
+| message     | Object         | No | (see next section) |
+
+
+| Name        | Type           | Required | Notes |
+| ---         | ---            | --- | --- |
+| status      | String         | Yes | Contains status message or error message |
+
 
 [Top](#toc)<br>
 <a id="4.6-group-api"></a>
@@ -549,7 +590,7 @@ Requests to upload a Device Drive Script file.
 ```
 {
     "api_maj": 0,
-    "api_min": 10,
+    "api_min": 11,
     "cmd_id": 1010,
     "req_id": 123456,
     "dev_id": "20010db800000000f7706ffffe1e34c6",
@@ -573,13 +614,12 @@ Requests to upload a Device Drive Script file.
 ```
 {
     "api_maj": 0,
-    "api_min": 10,
+    "api_min": 11,
     "cmd_id": 1011,
     "req_id": 123456,
     "response": {
-        "error": 0,
-        "message": []
-    }
+        "error": 0, 
+    } 
 }
 ```
 
@@ -594,7 +634,12 @@ Requests to upload a Device Drive Script file.
 | Name        | Type           | Required | Notes |
 | ---         | ---            | --- | --- |
 | error       | Number, uint32 | Yes | 0 for success, non-zero for error |
-| message     | Array          | Yes | None or error message |
+| message     | Object         | No | (see next section) |
+
+
+| Name        | Type           | Required | Notes |
+| ---         | ---            | --- | --- |
+| status      | String         | Yes | Contains status message or error message |
 
 [Top](#toc)<br>
 <a id="4.7-group-api"></a>
@@ -609,7 +654,7 @@ Requests to add a Remove to the Device (and its container/files/access to the De
 ```
 {
     "api_maj": 0,
-    "api_min": 10,
+    "api_min": 11,
     "cmd_id": 1012,
     "req_id": 123456,
     "dev_id": "20010db800000000f7706ffffe1e34c6"
@@ -629,13 +674,12 @@ Requests to add a Remove to the Device (and its container/files/access to the De
 
 ```
 {
-    "api_maj": 0, 
-    "api_min": 10, 
-    "cmd_id": 1013, 
-    "req_id": 123456, 
+    "api_maj": 0,
+    "api_min": 11,
+    "cmd_id": 1011,
+    "req_id": 123456,
     "response": {
-        "error": 0,
-        "message": []
+        "error": 0, 
     } 
 }
 ```
@@ -650,7 +694,13 @@ Requests to add a Remove to the Device (and its container/files/access to the De
 | Name        | Type           | Required | Notes |
 | ---         | ---            | --- | --- |
 | error       | Number, uint32 | Yes | 0 for success, non-zero for error |
-| message     | Array          | Yes | None or error message |
+| message     | Object         | No | (see next section) |
+
+
+| Name        | Type           | Required | Notes |
+| ---         | ---            | --- | --- |
+| status      | String         | Yes | Contains status message or error message |
+
 
 [Top](#toc)<br>
 <a id="4.8-group-api"></a>
@@ -665,7 +715,7 @@ Requests to reset to update Device authentication key.  **NOTE** for devices lik
 ```
 {
     "api_maj": 0,
-    "api_min": 10,
+    "api_min": 11,
     "cmd_id": 1014,
     "req_id": 123456,
     "dev_id": "20010db800000000f7706ffffe1e34c6"
@@ -686,13 +736,16 @@ Requests to reset to update Device authentication key.  **NOTE** for devices lik
 ```
 {
     "api_maj": 0,
-    "api_min": 10,
+    "api_min": 11,
     "cmd_id": 1015,
     "req_id": 123456,
     "response": {
         "error": 0,
-        "message": ["password: 2ff87d3a0d064d278ecff756aa57ebf6"]
-    } 
+        "message": {
+            "device_id" : "20010db800000000f7706ffffe1e34c6"
+            "auth_key" : "2ff87d3a0d064d278ecff756aa57ebf6"
+        }
+    }
 }
 ```
 | Name        | Type           | Required | Notes |
@@ -706,7 +759,13 @@ Requests to reset to update Device authentication key.  **NOTE** for devices lik
 | Name        | Type           | Required | Notes |
 | ---         | ---            | --- | --- |
 | error       | Number, uint32 | Yes | 0 for success, non-zero for error |
-| message     | Array          | Yes | The Authentication Key |
+| message     | Object         | Yes | (see next section) |
+
+
+| Name        | Type           | Required | Notes |
+| ---         | ---            | --- | --- |
+| dev_id      | String, 32 char lowercase, 0-9, a-f | Yes | The Device ID updated |
+| auth_key    | String         | Yes | The Authentication Key |
 
 
 [Top](#toc)<br>
@@ -726,7 +785,7 @@ Currently supports:
 ```
 {
     "api_maj": 0,
-    "api_min": 10,
+    "api_min": 11,
     "cmd_id": 1020,
     "req_id": 123456,
     "dev_id": "20010db800000000f7706ffffe1e34c6",
@@ -750,12 +809,11 @@ Currently supports:
 ```
 {
     "api_maj": 0,
-    "api_min": 10,
+    "api_min": 11,
     "cmd_id": 1021,
     "req_id": 123456,
     "response": {
-        "error": 0,
-        "message": []
+        "error": 0, 
     }
 }
 ```
@@ -771,7 +829,13 @@ Currently supports:
 | Name        | Type           | Required | Notes |
 | ---         | ---            | --- | --- |
 | error       | Number, uint32 | Yes | 0 for success, non-zero for error |
-| message     | Array          | Yes | None or error message |
+| message     | Object         | No | (see next section) |
+
+
+| Name        | Type           | Required | Notes |
+| ---         | ---            | --- | --- |
+| status      | String         | Yes | Contains status message or error message |
+
 
 
 
@@ -812,7 +876,7 @@ Requests to set GPIO state of the device
 ```
 {
     "api_maj":0,
-    "api_min":5,
+    "api_min":11,
     "dts":1539090421,
     "dev": {
         "dev_id":"000102030405060708090A0B0C0D0E0F", 
@@ -863,7 +927,7 @@ Requests to set GPIO state of the device
 ```
 {
     "api_maj" : 0,
-    "api_min" : 10,
+    "api_min" : 11,
     "dts" : 0,
     "dev" : {
         "dev_cmd" : {
@@ -904,7 +968,7 @@ Requests to a soft reset of device
 ```
 {
     "api_maj" : 0,
-    "api_min" : 10,
+    "api_min" : 11,
     "dts" : 0,
     "dev" : {
         "dev_id": “cafebabecafebabecafebabecafebabe”,
@@ -950,7 +1014,7 @@ Requests to start Device Firmware Update process
 ```
 {
     "api_maj" : 0,
-    "api_min" : 10,
+    "api_min" : 11,
     "dts" : 0,
     "dev" : {
         "dev_id": “cafebabecafebabecafebabecafebabe”, 
@@ -987,7 +1051,7 @@ Requests to start Device Firmware Update process
 ```
 {
     "api_maj" : 0,
-    "api_min" : 10,
+    "api_min" : 11,
     "dts" : 0,
     "dev" : {
         "dev_cmd" : {
@@ -1033,7 +1097,7 @@ The following is provided to give an idea of what typical device data may look l
 ```
 {  
    "api_maj":0,
-   "api_min":10,
+   "api_min":11,
    "dts":0,
    "dev":{  
       "dev_id":"000102030405060708090A0B0C0D0E0F",
@@ -1090,7 +1154,7 @@ The following is provided to give an idea of what typical device configuration m
 ```
 {
     "api_maj": 0,
-    "api_min": 10,
+    "api_min": 11,
     "dts": 1536783776,
     "dev": {
         "dev_id": "20010DB800000000026C01FFFE5E8584",
