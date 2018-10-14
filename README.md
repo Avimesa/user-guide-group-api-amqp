@@ -1,5 +1,5 @@
 # User Guide for the Avimesa Group API (AMQP)
-*last updated 2018-Oct-13*
+*last updated 2018-Oct-14*
 
 ## Introduction
 This project contains the Avimesa Group API documentation.  The purpose of this documention is to describe the API available for the Avimesa Group clients. The Group API (AMQP) in general can be seen as a JSON based protocol that uses Avimesa-configured RabbitMQ for messaging and provides the ability to interface with the Avimesa system.
@@ -47,8 +47,9 @@ This project contains the Avimesa Group API documentation.  The purpose of this 
         - [4.10.3 Soft Reset - Command 0xF002](#4.10.3-group-api)
         - [4.10.4 Firmware Update Trigger - Command 0xF008](#4.10.4-group-api)
     - [4.11 System Log](#4.11-system-log)
-        - [4.11.1 JSON Format](#4.11.1-system-log)
-        - [4.11.2 System Log Event IDs](#4.11.2-system-log)
+        - [4.11.1 Summary](#4.11.1-system-log)
+        - [4.11.2 JSON Format](#4.11.2-system-log)
+        - [4.11.3 System Log Event IDs](#4.11.3-system-log)
 - [5. DialTone QuickStart](#5.-dt-quickstart)
     - [5.1 Summary](#5.1-dt-quickstart)
     - [5.2 Typical Device Data](#5.2-dt-quickstart)
@@ -937,13 +938,13 @@ Requests to set GPIO state of the device
 | mask        | Number, uint32 | Yes | See below |
 
 <a id="4.10.2.1-group-api"></a>
-#####4.10.2.1 State
+##### 4.10.2.1 State
 - Supports up to 32 pins in the 32 bit value
 - When bit is 0 GPIO is off, when bit is 1 GPIO is on
 - For example, 0x00000003 would enable GPIO 0 and 1
 
 <a id="4.10.2.2-group-api"></a>
-#####4.10.2.2 Mask
+##### 4.10.2.2 Mask
 - Bit wise flags, 0 – ignore, 1 – don’t ignore.
 - For example, a mask of 0x00000001 on state of 0x00000003 Flags above would inform device to enable.  GPIO 0 but not GPIO 1. This allows us to prevent disabling GPIO (e.g. request doesn’t need to have system state)
 
@@ -984,7 +985,7 @@ Requests to set GPIO state of the device
 
 [Top](#toc)<br>
 <a id="4.10.3-group-api"></a>
-####4.10.3 Soft Reset - Command 0xF002
+#### 4.10.3 Soft Reset - Command 0xF002
 
 **Summary**
 
@@ -1114,11 +1115,16 @@ Requests to start Device Firmware Update process
 ### 4.11 System Log
 
 <a id="4.11.1-system-log"></a>
-#### 4.11.1 JSON Format
+#### 4.11.1 Summary
+
+The System Log is accessed through the `sys_loq_q` queue.  It's very similar to the Raw (`raw_q`) and Notification (`not_q`) queues, but will generally contain system events and errors in JSON form. 
+
+<a id="4.11.2-system-log"></a>
+#### 4.11.2 JSON Format
 
 ```
 {
-    “evt_id” : 0, 
+    “evt_id” : 65539, 
     “dts” : 1539383229, 
     “dev_id” : “0e8155d8559543860000000000000001", 
     “msg” : “Encoding dev_out to JSON failed”}
@@ -1132,8 +1138,8 @@ Requests to start Device Firmware Update process
 | dev_id      | String         | No  | The device ID that created the event (if any) |
 | msg         | String         | Yes | Additional text for the message |
 
-<a id="4.11.2-system-log"></a>
-#### 4.11.2 System Log Event IDs
+<a id="4.11.3-system-log"></a>
+#### 4.11.3 System Log Event IDs
 
 - 0x00010000 (65536) - API Events
 
@@ -1157,12 +1163,12 @@ Requests to start Device Firmware Update process
 ## 5. DialTone QuickStart
 
 <a id="5.1-dt-quickstart"></a>
-####5.1 Summary
+#### 5.1 Summary
 
 Please refer to the document Avimesa_DialTone_Protocol.docx for details
 
 <a id="5.2-dt-quickstart"></a>
-####5.2 Typical Device Data
+#### 5.2 Typical Device Data
 
 The following is provided to give an idea of what typical device data may look like when unaltered and sent from the Device runtime to the queues.
 
@@ -1172,7 +1178,7 @@ The following is provided to give an idea of what typical device data may look l
    "api_min":11,
    "dts":0,
    "dev":{  
-      "dev_id":"000102030405060708090A0B0C0D0E0F",
+      "dev_id":"000102030405060708090a0b0c0d0e0f",
       "dev_data":{  
          "dev_type":1,
          "fw":1,
@@ -1229,7 +1235,7 @@ The following is provided to give an idea of what typical device configuration m
     "api_min": 11,
     "dts": 1536783776,
     "dev": {
-        "dev_id": "20010DB800000000026C01FFFE5E8584",
+        "dev_id": "20010DB800000000026c01fffe5e8584",
         "dev_cfg": {
             "heartbeat": 3
         },
