@@ -5,14 +5,13 @@
 This project contains the Avimesa Group API documentation.  The purpose of this documention is to describe the API available for the Avimesa Group clients. The Group API (AMQP) in general can be seen as a JSON based protocol that uses Avimesa-configured RabbitMQ for messaging and provides the ability to interface with the Avimesa system.
 
 
-
-
-
 <a id="toc"></a>
 ## Table of Contents
 - [1. Summary](#1.-summary)
     - [1.1 Overview](#1.1-summary)
-    - [1.1 Client Examples](#1.2-summary)
+    - [1.2 Client Examples](#1.2-summary)
+    - [1.3 References](#1.3-references)
+    - [1.4 Terminology](#1.4-terminology)
 - [2. Components](#2.-components)
     - [2.1 Avimesa Core Architecture](#2.1-components)
         - [2.1.1 Devices](#2.1.1-components)
@@ -47,12 +46,22 @@ This project contains the Avimesa Group API documentation.  The purpose of this 
         - [4.10.2 Set GPIO State - Command 0xB102](#4.10.2-group-api)
         - [4.10.3 Soft Reset - Command 0xF002](#4.10.3-group-api)
         - [4.10.4 Firmware Update Trigger - Command 0xF008](#4.10.4-group-api)
+    - [4.11 System Log](#4.11-system-log)
+        - [4.11.1 JSON Format](#4.11.1-system-log)
+        - [4.11.2 System Log Event IDs](#4.11.2-system-log)
 - [5. DialTone QuickStart](#5.-dt-quickstart)
     - [5.1 Summary](#5.1-dt-quickstart)
     - [5.2 Typical Device Data](#5.2-dt-quickstart)
     - [5.3 Typical Device Configuration](#5.3-dt-quickstart)
     
+
+The following lists larger API updates.  See github for complete changelog of the smaller changes.
     
+| API Version |Change |
+| --- | ---  |
+| 0.10 | Initial release on github|
+| 0.11 | - Changed CMD 1XXX responses.  Instead of a generic "message" arrary of strings, the response is now a JSON object that is easier to consume |
+
     
 <a id="1.-summary"></a>
 ## 1. Summary
@@ -90,7 +99,7 @@ Client examples showing various use cases are available in source code form are 
 - python [TODO](#todo)
 - PHP [TODO](#todo)
 
-<a id="1.3-summary"></a>
+<a id="1.3-references"></a>
 ### 1.3 References
 
 | Document | Summary |
@@ -100,7 +109,7 @@ Client examples showing various use cases are available in source code form are 
 
 *Table 1*
 
-<a id="1.4-summary"></a>
+<a id="1.4-terminology"></a>
 ### 1.4 Terminology
 
 | Term | Meaning |
@@ -113,12 +122,6 @@ Client examples showing various use cases are available in source code form are 
 
 *Table 2*
 
-<a id="1.5-versions"></a>
-### 1.5 Versions
-| Version |Change |
-| --- | ---  |
-| 0.10 | Initial release on github|
-| 0.11 | Changed CMD 1XXX responses.  Instead of a generic "message" arrary of strings, the response is now a JSON object that is easier to consume |
 
 [Top](#toc)<br>
 <a id="2.-components"></a>
@@ -245,7 +248,7 @@ The following is provided to give an overall sense of the Group API’s usage. W
 For the RabbitMQ specifics, please reference Avimesa_RMQ_Design.pdf
 
 <a id="4.1.2-group-api"></a>
-#### 4.1.2 Command Requests
+#### 4.1.2 Command Requests (Admin In)
 
 Requests are sent to a RMQ Exchange via the following RMQ settings:
 
@@ -269,7 +272,7 @@ $channel->basic_publish(‘hello!’, ‘admin.dx’, ‘in);
 ```
 
 <a id="4.1.3-group-api"></a>
-#### 4.1.3 Command Response
+#### 4.1.3 Command Response (Admin Out)
 
 Responses are available via the following RMQ settings:
 
@@ -280,7 +283,7 @@ Responses are available via the following RMQ settings:
 |  **Host**  | rmqserv001.avimesa.com |
 |  **Port**  | 5671 |
 |  **Credentials**  | Provided to user |
-|  **Queue**  | Name = “admin_out_q”, Passive = True, Durable = True |
+|  **Queue**  | Name = `admin_out_q`, Passive = True, Durable = True |
 
 PHP Pseudo Code:
 
@@ -297,15 +300,39 @@ $message = $channel->basic_get('admin_out_q');
 
 Raw data records are published and can be subscribed to. The consumer should acknowledge the message once consumed.
 
+|  |  |
+| --- | ---  | 
+|  **vhost**  | Provided to user |
+|  **Host**  | rmqserv001.avimesa.com |
+|  **Port**  | 5671 |
+|  **Credentials**  | Provided to user |
+|  **Queue**  | Name = `raw_q`, Passive = True, Durable = True |
+
 <a id="4.1.5-group-api"></a>
 #### 4.1.5 Notification Data Subscription
 
 Notification data records are published and can be subscribed to. The consumer should acknowledge the message once consumed.
 
+|  |  |
+| --- | ---  | 
+|  **vhost**  | Provided to user |
+|  **Host**  | rmqserv001.avimesa.com |
+|  **Port**  | 5671 |
+|  **Credentials**  | Provided to user |
+|  **Queue**  | Name = `not_q`, Passive = True, Durable = True |
+
 <a id="4.1.6-group-api"></a>
 #### 4.1.6 System Log Data Subscription
 
 System log data records are published and can be subscribed to. The consumer should acknowledge the message once consumed.
+
+|  |  |
+| --- | ---  | 
+|  **vhost**  | Provided to user |
+|  **Host**  | rmqserv001.avimesa.com |
+|  **Port**  | 5671 |
+|  **Credentials**  | Provided to user |
+|  **Queue**  | Name = `sys_log_q`, Passive = True, Durable = True |
 
 [Top](#toc)<br>
 <a id="4.2-group-api"></a>
@@ -1078,6 +1105,51 @@ Requests to start Device Firmware Update process
 | ---         | ---            | --- | --- |
 | dev_cmd_id  | Number, uint32 | Yes | The Command ID, represented in base 10 |
 | req_id      | Number, uint32 | Yes | The Request ID, used to track request to the response |
+
+
+
+
+[Top](#toc)<br>
+<a id="4.11-system-log"></a>
+### 4.11 System Log
+
+<a id="4.11.1-system-log"></a>
+#### 4.11.1 JSON Format
+
+```
+{
+    “evt_id” : 0, 
+    “dts” : 1539383229, 
+    “dev_id” : “0e8155d8559543860000000000000001", 
+    “msg” : “Encoding dev_out to JSON failed”}
+}
+```
+
+| Name        | Type           | Required | Notes |
+| ---         | ---            | --- | --- |
+| evt_id      | Number, uint32 | Yes | The event ID (see below) |
+| dts         | Number, uint32 | Yes | Linux time of event |
+| dev_id      | String         | No  | The device ID that created the event (if any) |
+| msg         | String         | Yes | Additional text for the message |
+
+<a id="4.11.2-system-log"></a>
+#### 4.11.2 System Log Event IDs
+
+- 0x00010000 (65536) - API Events
+
+| Event ID (base 16/10)| Origin  | Notes |
+| ---                  | ---     | ---   |
+| 0x00010001 (65537)   | API (AMQP) | Group Worker Process |
+| 0x00010002 (65538)   | API (AMQP) | Infrastructure Worker Process |
+
+
+- 0x00020000 (131072) - Device Cloud Events
+
+| Event ID (base 16/10)| Origin  | Notes |
+| ---                  | ---     | ---   |
+| 0x00020001 (65537)   | Device Cloud | Device Input parsing error |
+| 0x00020002 (65538)   | Device Cloud | Device Driver Engine error |
+| 0x00020003 (65539)   | Device Cloud | Device Output parsing error |
 
 
 [Top](#toc)<br>
