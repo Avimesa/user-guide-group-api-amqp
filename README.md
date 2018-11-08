@@ -1,5 +1,5 @@
 # User Guide for the Avimesa Group API (AMQP)
-*last updated 2018-Oct-14*
+*last updated 2018-Nov-8*
 
 ## Introduction
 This project contains the Avimesa Group API documentation.  The purpose of this documention is to describe the API available for the Avimesa Group clients. The Group API (AMQP) in general can be seen as a JSON based protocol that uses Avimesa-configured RabbitMQ for messaging and provides the ability to interface with the Avimesa system.
@@ -20,14 +20,14 @@ This project contains the Avimesa Group API documentation.  The purpose of this 
         - [2.1.4 Group vhosts](#2.1.4-components)
         - [2.1.5 Group vhost Client](#2.1.5-components)
 - [3. Recommended Client Usage](#3.-client-usage)
-    - [3.1 Single Consumer/User/Producer](#3.1-client-usage)
+    - [3.1 Consumer/User/Producer](#3.1-client-usage)
     - [3.2 Data Consumer Worker](#3.2-client-usage)
     - [3.3 Device Actuation Process](#3.3-client-usage)
     - [3.4 Syslog Consumer Worker](#3.4-client-usage)
     - [3.5 Admin Worker Process](#3.5-client-usage)
 - [4. Group API](#4.-group-api)
     - [4.1 General Data Flow](#4.1-group-api)
-        - [4.1.1 Reference Document](#4.1.1-group-api)
+        - [4.1.1 AMQP Permissions](#4.1.1-group-api)
         - [4.1.2 Command Requests](#4.1.2-group-api)
         - [4.1.3 Command Responses](#4.1.3-group-api)
         - [4.1.4 Raw Data Subscription](#4.1.4-group-api)
@@ -94,11 +94,7 @@ The Group API supports the following:
 
 Client examples showing various use cases are available in source code form are located here:
 
-
-
-- JavaScript [TODO](#todo)
-- python [TODO](#todo)
-- PHP [TODO](#todo)
+- JavaScript / Node.js available on [GitHub](#https://github.com/Avimesa/examples-nodejs-group-api-amqp)
 
 <a id="1.3-references"></a>
 ### 1.3 References
@@ -181,13 +177,12 @@ The following is provided to give an overall sense of the Group API’s usage. W
 
 [Top](#toc)<br>
 <a id="3.1-client-usage"></a>
-### 3.1 Single Consumer/User/Producer
+### 3.1 Example
 
-- The Group API should be considered and used as a ONE-to-ONE connection from the Group vhost and the application or service
-- This is generally enforced by rules on the message broker to prohibit multiple connections
+Complete examples of a simple client are located here in source code form:
 
-![fig2](images/fig2.png)<br>
-*Figure 2*
+- JavaScript / Node.js available on [GitHub](#https://github.com/Avimesa/toolkit-nodejs)
+
 
 [Top](#toc)<br>
 <a id="3.2-client-usage"></a>
@@ -244,9 +239,13 @@ The following is provided to give an overall sense of the Group API’s usage. W
 ### 4.1 General Data Flow
 
 <a id="4.1.1-group-api"></a>
-#### 4.1.1 Refernce Document
+#### 4.1.1 AMQP Permissions
 
-For the RabbitMQ specifics, please reference Avimesa_RMQ_Design.pdf
+The default Group API permissions are as follows, which allow resources to be configured if they follow the 'nameless' pattern, and full read/write access. 
+
+`"amq.gen-.*" ".*" ".*"`
+
+For the RabbitMQ specifics, please reference Avimesa_RMQ_Design.pdf.
 
 <a id="4.1.2-group-api"></a>
 #### 4.1.2 Command Requests (Admin In)
@@ -262,21 +261,11 @@ Requests are sent to a RMQ Exchange via the following RMQ settings:
 |  **Exchange**  | Name = “admin.dx”, Type = Direct, Passive = True |
 |  **Routing Key**  | “in” (for admin in) |
 
-PHP Pseudo Code:
-
-```
-...
-$channel->exchange_declare('admin.dx', 'direct', true, false, false);
-...
-$channel->basic_publish(‘hello!’, ‘admin.dx’, ‘in);
-...
-```
 
 <a id="4.1.3-group-api"></a>
 #### 4.1.3 Command Response (Admin Out)
 
-Responses are available via the following RMQ settings:
-
+Responses are available by default via the following RMQ settings.  It should be noted that a nice RPC style approach can be used instead where a temporary response queue is created and used for the commands response.
 
 |  |  |
 | --- | ---  | 
@@ -285,17 +274,7 @@ Responses are available via the following RMQ settings:
 |  **Port**  | 5671 |
 |  **Credentials**  | Provided to user |
 |  **Queue**  | Name = `admin_out_q`, Passive = True, Durable = True |
-
-PHP Pseudo Code:
-
-```
-...
-$channel->queue_declare('admin_out_q', true, true, false, false);
-...
-$message = $channel->basic_get('admin_out_q'); 
-...
-```
-
+  
 <a id="4.1.4-group-api"></a>
 #### 4.1.4 Raw Data Subscription
 
