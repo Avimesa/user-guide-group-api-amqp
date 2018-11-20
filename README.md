@@ -1,5 +1,5 @@
 # User Guide for the Avimesa Group API (AMQP)
-*last updated 2018-Nov-8*
+*last updated 2018-Nov-20*
 
 ## Introduction
 This project contains the Avimesa Group API documentation.  The purpose of this documention is to describe the API available for the Avimesa Group clients. The Group API (AMQP) in general can be seen as a JSON based protocol that uses Avimesa-configured RabbitMQ for messaging and provides the ability to interface with the Avimesa system.
@@ -980,7 +980,7 @@ Requests to a soft reset of device
     "dev" : {
         "dev_id": “cafebabecafebabecafebabecafebabe”,
         "dev_cmd" : {
-            "dev_cmd_id" : 61448,
+            "dev_cmd_id" : 61442,
             "req_id" : 123456 
         }
     }
