@@ -1155,7 +1155,7 @@ The following is provided to give an idea of what typical device data may look l
 {  
    "api_maj":0,
    "api_min":11,
-   "dts":0,
+   "dts":1536783776,
    "dev":{  
       "dev_id":"000102030405060708090a0b0c0d0e0f",
       "dev_data":{  
@@ -1212,7 +1212,7 @@ The following is provided to give an idea of what typical device configuration m
 {
     "api_maj": 0,
     "api_min": 11,
-    "dts": 1536783776,
+    "dts": 0,
     "dev": {
         "dev_id": "20010DB800000000026c01fffe5e8584",
         "dev_cfg": {
