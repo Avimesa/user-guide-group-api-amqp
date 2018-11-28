@@ -1,5 +1,5 @@
 # User Guide for the Avimesa Group API (AMQP)
-*last updated 2018-Nov-20*
+*last updated 2018-Nov-28*
 
 ## Introduction
 This project contains the Avimesa Group API documentation.  The purpose of this documention is to describe the API available for the Avimesa Group clients. The Group API (AMQP) in general can be seen as a JSON based protocol that uses Avimesa-configured RabbitMQ for messaging and provides the ability to interface with the Avimesa system.
@@ -1132,9 +1132,13 @@ The System Log is accessed through the `sys_loq_q` queue.  It's very similar to 
 
 | Event ID (base 16/10)| Origin  | Notes |
 | ---                  | ---     | ---   |
-| 0x00020001 (65537)   | Device Cloud | Device Input parsing error |
-| 0x00020002 (65538)   | Device Cloud | Device Driver Engine error |
-| 0x00020003 (65539)   | Device Cloud | Device Output parsing error |
+| 0x00020001 (131073)  | Device Cloud | Device Input parsing error |
+| 0x00020002 (131074)  | Device Cloud | Device Driver Engine error |
+| 0x00020003 (131075)  | Device Cloud | Device Output parsing error |
+| 0x00020004 (131076)  | Device Cloud | Device Firmware Update (DFU) Start Event |
+| 0x00020005 (131077)  | Device Cloud | Device Firmware Update (DFU) Progress Update |
+| 0x00020006 (131078)  | Device Cloud | Device Firmware Update (DFU) Complete Event |
+| 0x00020007 (131079)  | Device Cloud | Device Firmware Update (DFU) Error Event |
 
 
 [Top](#toc)<br>
