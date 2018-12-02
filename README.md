@@ -1,5 +1,5 @@
 # User Guide for the Avimesa Group API (AMQP)
-*last updated 2018-Nov-28*
+*last updated 2018-Dec-2*
 
 ## Introduction
 This project contains the Avimesa Group API documentation.  The purpose of this documention is to describe the API available for the Avimesa Group clients. The Group API (AMQP) in general can be seen as a JSON based protocol that uses Avimesa-configured RabbitMQ for messaging and provides the ability to interface with the Avimesa system.
@@ -1120,15 +1120,42 @@ The System Log is accessed through the `sys_loq_q` queue.  It's very similar to 
 <a id="4.11.3-system-log"></a>
 #### 4.11.3 System Log Event IDs
 
-- 0x00010000 (65536) - API Events
+ ##### API Events Overview - 0x00010000 (65536)
 
 | Event ID (base 16/10)| Origin  | Notes |
 | ---                  | ---     | ---   |
-| 0x00010001 (65537)   | API (AMQP) | Group Worker Process |
-| 0x00010002 (65538)   | API (AMQP) | Infrastructure Worker Process |
+| 0x00010000 (65537)   | API (AMQP) | General API Event |
+| 0x00011000 (69632)   | API (AMQP) | General Infrastructure API Event |
+| 0x00012000 (73728)   | API (AMQP) | General Group API Event|
 
 
-- 0x00020000 (131072) - Device Cloud Events
+#####  Group API Events - 0x00012000 (73728)
+
+| Event ID (base 16/10)| Origin  | Notes |
+| ---                  | ---     | ---   |
+| 0x00012000 (73728)   | API (AMQP) | General Group API Event|
+| 0x00012001 (73729)   | API (AMQP) | Unknown Command Error |
+| 0x00012002 (73730)   | API (AMQP) | Command Parsing Error  |
+| 0x00012010 (73744)   | API (AMQP) | CMD 1000 - Success |
+| 0x00012011 (73745)   | API (AMQP) | CMD 1000 - Error |
+| 0x00012012 (73746)   | API (AMQP) | CMD 1002 - Success |
+| 0x00012013 (73747)   | API (AMQP) | CMD 1002 - Error |
+| 0x00012014 (73748)   | API (AMQP) | CMD 1004 - Success |
+| 0x00012015 (73749)   | API (AMQP) | CMD 1004 - Error |
+| 0x00012016 (73750)   | API (AMQP) | CMD 1006 - Success |
+| 0x00012017 (73751)   | API (AMQP) | CMD 1006 - Error |
+| 0x00012018 (73752)   | API (AMQP) | CMD 1008 - Success |
+| 0x00012019 (73753)   | API (AMQP) | CMD 1008 - Error |
+| 0x0001201a (73754)   | API (AMQP) | CMD 1010 - Success |
+| 0x0001201b (73755)   | API (AMQP) | CMD 1010 - Error |
+| 0x0001201c (73756)   | API (AMQP) | CMD 1012 - Success |
+| 0x0001201d (73757)   | API (AMQP) | CMD 1012 - Error |
+| 0x0001201e (73758)   | API (AMQP) | CMD 1014 - Success |
+| 0x0001201f (73759)   | API (AMQP) | CMD 1014 - Error |
+| 0x00012020 (73760)   | API (AMQP) | CMD 1020 - Success |
+| 0x00012021 (73761)   | API (AMQP) | CMD 1020 - Error |
+
+##### Device Cloud Events - 0x00020000 (131072) 
 
 | Event ID (base 16/10)| Origin  | Notes |
 | ---                  | ---     | ---   |
