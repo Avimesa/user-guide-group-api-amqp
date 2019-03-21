@@ -1,5 +1,5 @@
 # User Guide for the Avimesa Group API (AMQP)
-*last updated 2018-Dec-2*
+*last updated 2019-Mar-21*
 
 ## Introduction
 This project contains the Avimesa Group API documentation.  The purpose of this documention is to describe the API available for the Avimesa Group clients. The Group API (AMQP) in general can be seen as a JSON based protocol that uses Avimesa-configured RabbitMQ for messaging and provides the ability to interface with the Avimesa system.
@@ -94,7 +94,8 @@ The Group API supports the following:
 
 Client examples showing various use cases are available in source code form are located here:
 
-- JavaScript / Node.js available on [GitHub](#https://github.com/Avimesa/examples-nodejs-group-api-amqp)
+- Node.js SDK [npm package](https://www.npmjs.com/package/@avimesa/group-api-amqp) and source code on [GitHub](https://github.com/Avimesa/sdk-nodejs-group-api-amqp)
+- Node.js Examples using SDK on [GitHub](https://github.com/Avimesa/examples-nodejs-group-api-amqp)
 
 <a id="1.3-references"></a>
 ### 1.3 References
@@ -179,9 +180,10 @@ The following is provided to give an overall sense of the Group API’s usage. W
 <a id="3.1-client-usage"></a>
 ### 3.1 Example
 
-Complete examples of a simple client are located here in source code form:
+Complete examples of a simple client usage are located here:
 
-- JavaScript / Node.js available on [GitHub](#https://github.com/Avimesa/toolkit-nodejs)
+- Node.js SDK [npm package](https://www.npmjs.com/package/@avimesa/group-api-amqp) and source code on [GitHub](https://github.com/Avimesa/sdk-nodejs-group-api-amqp)
+- Node.js Examples using SDK on [GitHub](https://github.com/Avimesa/examples-nodejs-group-api-amqp)
 
 
 [Top](#toc)<br>
@@ -222,13 +224,37 @@ Complete examples of a simple client are located here in source code form:
 <a id="3.5-client-usage"></a>
 ### 3.5 Admin Worker Process
 
+
+#### Summary
+
 ![fig6](images/fig6.png)<br>
 *Figure 6*
 
+Most of the Group API can be seen as a client sending 'admin' commands to the system, and processing the response to these commands.  In general, messages are sent to the `admin_in_q` queue via the `admin.dx` exchange with a routing key of `in`.
+The client can check for the response in two ways, described below.
+
+#### Remote Procedure Call (RPC)
+The RPC approach is clean and allows for clients to easily get responses only to the commands it sends.  This is useful for 'multi-tenant' use cases.
+
+In general, this is the usage model, with a source code example available [here](https://github.com/Avimesa/sdk-nodejs-group-api-amqp/blob/develop/lib/rmq.js), please see the `sendAdminCmd` function.
+
+- a connection is created (channel)
+- create a random `correlationId` (request ID) (I use a random 32 bit number in string form)
+- create a new temporary queue; nameless, exclusive, 60 second expiration, autodelete
+- begin to consume on that new queue (subscribe)
+- publish the message to `admin.dx` exchange, routing key = `in`, set options on the message to have the `replyTo` property set to the temporary queue name and `correlationID` to ID created above. The temporary queue will have a name like "amq.gen-"
+- Once you receive the response in the temporary queue, close the connection, and the temporary queue should go away.
+
+**Note:** the `admin_out_q` is not used at all in this usage model.
+
+#### Single Consumer Usage
+It may suffice to have a single consumer of all admin command responses.
+
+
 - An Admin Worker process is responsible for both generating and sending admin commands following the DialTone JSON format and processing the responses via a response in a queue
 - This function is asynchronous in nature and should use the DialTone’s request ID to process the response
-- JSON requests are sent to the admin exchange following the DialTone JSON format to perform actions on the system
-- The responses to the requests are available to be subribed to or consumed from the admin out queue
+- JSON requests are sent to the admin exchange (`admin.dx`) with a routing key (`in`) following the DialTone JSON format to perform actions on the system
+- The responses to the requests are available to be subscribed to or consumed from the admin out queue (`admin_out_q`)
 
 [Top](#toc)<br>
 <a id="4.-group-api"></a>
@@ -265,7 +291,7 @@ Requests are sent to a RMQ Exchange via the following RMQ settings:
 <a id="4.1.3-group-api"></a>
 #### 4.1.3 Command Response (Admin Out)
 
-Responses are available by default via the following RMQ settings.  It should be noted that a nice RPC style approach can be used instead where a temporary response queue is created and used for the commands response.
+Responses are available by default via the following RMQ settings.  It should be noted that a nice RPC style approach can be used instead where a temporary response queue is created and used for the commands response.  See  
 
 |  |  |
 | --- | ---  | 
@@ -1235,7 +1261,7 @@ The following is provided to give an idea of what typical device data may look l
 ```
 
 <a id="5.3-dt-quickstart"></a>
-####5.3 Typical Device Configuration
+#### 5.3 Typical Device Configuration
 
 The following is provided to give an idea of what typical device configuration may look like when unaltered.
 
