@@ -1,22 +1,20 @@
-# User Guide for the Avimesa Group API (AMQP)
-*last updated 2019-Dec-11*
+# Developer Guide for Avimesa Messages
+*last updated 2019-Dec-12*
 
 ## Introduction
-This user guide outlines Avimesa's application of RabbitMQ and describes how an Avimesa client would use the Avimesa Group API (AMPQ wrapper) to interface with Avimesa Messages (the Avimesa cloud). This user guide also attempts to describe the RabbitMQ fundamentals used by Avimesa Messages in hopes of giving developers a better idea of what the Avimesa Group API attempts to accomplish and simplify. The Avimesa Group API can be tought of as a JSON based protocol for interfacing with Avimesa Messages and ultimately administering it.
-
+This guide serves as a crash course in administering Avimesa Messages. Avimesa Messages is an Internet of Things (IoT) cloud service that seeks to enable web developers in the IoT marketplace. The fundamentals conveyed in this guide are essential to successfully incorporating Avimesa Messages into an IoT solution and developers interested in using Avimesa Messages would use the Node.js [Avimesa Group API](https://github.com/Avimesa/sdk-nodejs-group-api-amqp) as their interface to it.
 
 <a id="toc"></a>
-## Table of Contents
-- [1. Summary](#1.-summary)
-    - [1.1 Overview](#1.1-summary)
-    - [1.2 Client Examples](#1.2-summary)
-    - [1.3 References](#1.3-references)
-    - [1.4 Terminology](#1.4-terminology)
-:- [2. Components](#2.-components)
+## Table of Contents 
+- [1. Overview](#1.-overview)
+    - [1.1 Terminology](#1.1-terminology)
+    - [1.2 Summary](#1.2-summary)
+    - [1.3 API and Examples](#1.3-api-and-examples)
+- [2. Components](#2.-components)
     - [2.1 Avimesa Core Architecture](#2.1-components)
         - [2.1.1 Devices](#2.1.1-components)
         - [2.1.2 Device Cloud Servers](#2.1.2-components)
-        - [2.1.3 Script Engine](#2.1.3-components)
+            - [2.1.2.1 JavaScript Engine](#2.1.2.1-components)
         - [2.1.4 Group vhosts](#2.1.4-components)
         - [2.1.5 Group vhost Client](#2.1.5-components)
 - [3. Recommended Client Usage](#3.-client-usage)
@@ -54,106 +52,83 @@ This user guide outlines Avimesa's application of RabbitMQ and describes how an 
     - [5.1 Summary](#5.1-dt-quickstart)
     - [5.2 Typical Device Data](#5.2-dt-quickstart)
     - [5.3 Typical Device Configuration](#5.3-dt-quickstart)
-    
 
-The following lists larger API updates.  See github for complete changelog of the smaller changes.
-    
-| API Version |Change |
-| --- | ---  |
-| 0.10 | Initial release on github|
-| 0.11 | - Changed CMD 1XXX responses.  Instead of a generic "message" arrary of strings, the response is now a JSON object that is easier to consume |
+<a id="1.-overview"></a>
+## 1. Overview
 
-    
-<a id="1.-summary"></a>
-## 1. Summary
+<a id="1.1-terminology"></a>
+### 1.1 Terminology
 
-<a id="1.1-summary"></a>
-### 1.1 Overview
-The Group API supports the following:
- 
-**Direct Device Interaction**
-- Ability to consume/subscribe to device data (raw/notification)
-- Queue based data access
-- Ability to actuate devices (i.e. send commands that elicit a device action)
-
-**Device Management and Provisioning**
-- Ability provision and remove devices
-- Ability to set a device script and configuration - Ability to reset device authentication keys
-- Ability to list devices/device files
-
-**Device and System Administration**
-- update device firmware (support for Avimesa 1000, but in general provides agnostic DFU style operations)
-- view system logs
-
-**Security**
-- TLS1.2
-- Group Level Authentication (128-bit ID/128-bit Auth Key)
+| Term | Meaning |
+| --- | --- |
+| device | Typically a system in the field with enabled communication to Avimesa Messages or an *Avimesa 1000* |
+| group | A term that almost always translates to a single customer. A group can be thought of as a logical grouping of devices pertaining to an end user that can be represented by a single *Group ID* |
+| vhost | Virtual Host: a *RabbitMQ* data isolation mechanism that allows groups to be isolated from each other (i.e. customer X can’t access customer Y’s device data). |
 
 <a id="1.2-summary"></a>
-### 1.2 Client Examples
+### 1.2 Summary
+The [(Avimesa) Group API](https://github.com/Avimesa/sdk-nodejs-group-api-amqp) can be thought of as a JSON based protocol for interfacing with Avimesa Messages and supports the following:
+ 
+**Device Data Acquisition**
 
-Client examples showing various use cases are available in source code form are located here:
+- Ability to subscribe to or consume from device data streams (raw data and notifications)
+    - Queue based (*AMQP*)
 
+**Device Management**
+
+- Device creation and removal
+- Device configuration via file upload
+- Cloud "business" logic via JavaScript file upload (processed by [JavaScript Engine](#2.1.3-components))
+    - Data manipulation, alarms, hysteresis, etc.
+- Authentication management
+- Device firmware updates (support for *Avimesa 1000*, but, in general, provides agnostic DFU style operations)
+
+**System Administration**
+
+- System log
+
+**Security**
+
+- TLS 1.2
+- Group and device level authentication via 128-bit ID and 128-bit Auth Key
+
+<a id="1.3-api-and-examples"></a>
+### 1.3 API and Examples
 - Node.js SDK [npm package](https://www.npmjs.com/package/@avimesa/group-api-amqp) and source code on [GitHub](https://github.com/Avimesa/sdk-nodejs-group-api-amqp)
 - Node.js Examples using SDK on [GitHub](https://github.com/Avimesa/examples-nodejs-group-api-amqp)
 
-<a id="1.3-references"></a>
-### 1.3 References
-
-| Document | Summary |
-| --- | ---  | 
-| Avimesa_RMQ_Design.pdf | Detailed information about the RabbitMQ configuration and interface, target audience being a developer. Can be used in conjunction with this document when building an Infrastructure client. |
-| Avimesa_DialTone_Protocol.pdf | Detailed information about the DialTone protocol |
-
-*Table 1*
-
-<a id="1.4-terminology"></a>
-### 1.4 Terminology
-
-| Term | Meaning |
-| --- | ---  | 
-| Group | A term that is typically used to represent a single customer, it’s a logical grouping of Devices for an end user, and can be represented with a single Group ID |
-| Device | Typically a system in the field that communicates with the Device Cloud. |
-| vhost | Virtual Host – a data isolation mechanism that allows Groups to be isolated from each other (i.e. customer X can’t access customer Y’s data). Other uses include an Infrastructure interface. |
-| Core Architecture | In this scope, represents a collection of hardware and software that facilitates Device to Device Cloud communications and messaging. |
-| Infrastructure Architecture | In this scope, represents software systems that facilitate account creation, maintenance and accounting bookkeeping of Device to Device Cloud transactions. |
-
-*Table 2*
-
-
 [Top](#toc)<br>
+
 <a id="2.-components"></a>
 ## 2. Components
 
 <a id="2.1-components"></a>
 ### 2.1 Avimesa Core Architecture
 
-In general, the Avimesa architecture can be viewed as follows for the scope of this document.
+The Avimesa ecosystem can be envisioned as follows for the scope of this document:
 
-![fig1](images/fig1.png)<br>
-*Figure 1*
+![fig1](images/fig1.png)<br><br>
 
 <a id="2.1.1-components"></a>
 #### 2.1.1 Devices
 
-In the scope of this document, a device is something that provides data that the Group wants to know about, is uniquely identified and authenticated against, and is configured via the Group vhost. The Device’s data will make its way through the system and will be available to the client application.
+A device is something that provides data to Avimesa Messages that its group wants to know about, is uniquely identified and authenticated against, and is configured via its group's vhost. The Device’s data will make its way through the system and will be available to the client application via *RabbitMQ*.
 
 <a id="2.1.2-components"></a>
-#### 2.1.2 Device Cloud Servers
+#### 2.1.2 Messages Servers
 
-In the scope of this document, the Device Cloud server manage all device communications, device authentication and hosting of the device runtimes.
+The Messages servers are a cloud component that manage all device communication, device authentication, and hosting of [JavaScript Engine](#2.1.3-components) runtimes.
 
-<a id="2.1.3-components"></a>
-#### 2.1.3 Script Engine
+<a id="2.1.2.1-components"></a>
+##### 2.1.2.1 JavaScript Engine
 
-A JavaScript program is executed on each device transaction (connection) by a Device Driver Script Engine. It provides the ability to send data to the Group vhosts data queues. In the scope of this document, it should be known that if the script does not manipulate the data models, than the default Avimesa DialTone formatted JSON can be expected in the data queues.
+A specialized JavaScript engine is available to clients that allows for a specialized JavaScript engine on each successful device communication. This feature provides the ability to send data to the group vhost data queues. In the scope of this document, it should be known that if the script does not manipulate the data models, then the default Avimesa DialTone formatted JSON can be expected in the data queues.
 
-The script can also pull device actuations out of the Device’s queue and relay to the device. In general, the script provides:
+In general, the script provides:
 
 - a JavaScript runtime for business logic
 - Access to the device’s data/state
 - Access to write to data queues (raw/notification)
-- Access to Read from device’s actuation queue
 - Some file I/O for hysteresis
 
 The script allows for the data models to be manipulated and thus can be considered a data adapter.
@@ -161,9 +136,9 @@ The script allows for the data models to be manipulated and thus can be consider
 In general, it’s easy to think of this script as a filtering and priority setting mechanism for data.
 
 <a id="2.1.4-components"></a>
-#### 2.1.4 Group vhosts
+#### 2.1.4 Vhosts
 
-A “Group vhost” is created per Group (customer). This vhost provides the end user access to their device data, device configuration and administration. In the context of this document, a Group vhost should be considered the bridge between a customer application and their devices. The customer’s application is responsible for connecting to the Group vhost using the various RMQ clients available (or writing their own). Avimesa has examples in various languages. The credentials to connect to the Group vhost are configured at the time of Group creation, which as of now is an Avimesa internal service.
+Each Avimesa Messages client is allotted one (*RabbitMQ*) vhost. A client's vhost provides access to their device data and the ability to administer their Avimesa Messages group. In the context of this document, a vhost should be considered the bridge between a customer application and their devices. The customer’s application is responsible for connecting to their respective vhost using the [Avimesa Group API](https://github.com/Avimesa/sdk-nodejs-group-api-amqp). The credentials required to connect to an Avimesa Messages vhost are configured at group inception and made available to their respective clients.
 
 <a id="2.1.5-components"></a>
 #### 2.1.5 Group vhost Client
@@ -174,9 +149,8 @@ An application that interfaces with the Group vhost needs to use (or build) a Ra
 <a id="3.-client-usage"></a>
 ## 3. Recommended Client Usage
 
-The following is provided to give an overall sense of the Group API’s usage. When the Avimesa Infrastructure API is used to create a new Group (Customer), the Group’s vhost is created, the end user is given credentials, and the API is available for use.
+The following is provided to give an overall sense of the Group API’s usage.
 
-[Top](#toc)<br>
 <a id="3.1-client-usage"></a>
 ### 3.1 Example
 
@@ -185,35 +159,19 @@ Complete examples of a simple client usage are located here:
 - Node.js SDK [npm package](https://www.npmjs.com/package/@avimesa/group-api-amqp) and source code on [GitHub](https://github.com/Avimesa/sdk-nodejs-group-api-amqp)
 - Node.js Examples using SDK on [GitHub](https://github.com/Avimesa/examples-nodejs-group-api-amqp)
 
-
-[Top](#toc)<br>
 <a id="3.2-client-usage"></a>
 ### 3.2 Data Consumer Worker
 
 ![fig3](images/fig3.png)<br>
-*Figure 3*
 
 - The Avimesa queues should be considered ‘temporary’ storage and ‘offloaded’ on a periodic basis to a data store
-- A worker should subscribe or consume data from the raw and notification data queues The data in the raw and notification queue can be populated via the Device’s script through the JavaScript API
+- A worker should subscribe or consume data from the raw and notification data queues The data in the raw and notification queues can be populated via the Device’s script through the JavaScript API
 - The format of the JSON data will be Avimesa’s DialTone unless it is re-formatted via the Device’s script, in which is can be anything the user desires (in JSON)
 
-[Top](#toc)<br>
 <a id="3.3-client-usage"></a>
-### 3.3 Device Actuation Process
-
-![fig4](images/fig4.png)<br>
-*Figure 4*
-
-- A Device Actuation Process should be considered as something that can generate commands for specific devices based upon the DialTone JSON protocol
-- Device’s can be ‘actuated’ (commands sent to have an action take place on the device) by having an application send the JSON command to the Device’s queue via the actuation exchange
-- The Device may obtain the JSON command via the Device’s script through the JavaScript
-
-[Top](#toc)<br>
-<a id="3.4-client-usage"></a>
-### 3.4 Syslog Consumer Worker
+### 3.3 Syslog Consumer Worker
 
 ![fig5](images/fig5.png)<br>
-*Figure 5*
 
 - The Avimesa queues should be considered ‘temporary’ storage and ‘offloaded’ on a periodic basis to a data store
 - A worker should subscribe or consume data from the system log queues
@@ -221,14 +179,13 @@ Complete examples of a simple client usage are located here:
 - The format of the JSON data will be Avimesa’s DialTone
 
 [Top](#toc)<br>
-<a id="3.5-client-usage"></a>
-### 3.5 Admin Worker Process
+<a id="3.4-client-usage"></a>
+### 3.4 Admin Worker Process
 
 
 #### Summary
 
 ![fig6](images/fig6.png)<br>
-*Figure 6*
 
 Most of the Group API can be seen as a client sending 'admin' commands to the system, and processing the response to these commands.  In general, messages are sent to the `admin_in_q` queue via the `admin.dx` exchange with a routing key of `in`.
 The client can check for the response in two ways, described below.
@@ -260,7 +217,6 @@ It may suffice to have a single consumer of all admin command responses.
 <a id="4.-group-api"></a>
 ## 4. Group API
 
-[Top](#toc)<br>
 <a id="4.1-group-api"></a>
 ### 4.1 General Data Flow
 
@@ -281,7 +237,7 @@ Requests are sent to a RMQ Exchange via the following RMQ settings:
 |  |  |
 | --- | ---  | 
 |  **vhost**  | Provided to user |
-|  **Host**  | rmqserv001.avimesa.com |
+|  **Host**  | queues.avimesacorp.net |
 |  **Port**  | 5671 |
 |  **Credentials**  | Provided to user |
 |  **Exchange**  | Name = “admin.dx”, Type = Direct, Passive = True |
@@ -296,7 +252,7 @@ Responses are available by default via the following RMQ settings.  It should be
 |  |  |
 | --- | ---  | 
 |  **vhost**  | Provided to user |
-|  **Host**  | rmqserv001.avimesa.com |
+|  **Host**  | queues.avimesacorp.net |
 |  **Port**  | 5671 |
 |  **Credentials**  | Provided to user |
 |  **Queue**  | Name = `admin_out_q`, Passive = True, Durable = True |
@@ -309,7 +265,7 @@ Raw data records are published and can be subscribed to. The consumer should ack
 |  |  |
 | --- | ---  | 
 |  **vhost**  | Provided to user |
-|  **Host**  | rmqserv001.avimesa.com |
+|  **Host**  | queues.avimesacorp.net |
 |  **Port**  | 5671 |
 |  **Credentials**  | Provided to user |
 |  **Queue**  | Name = `raw_q`, Passive = True, Durable = True |
@@ -322,7 +278,7 @@ Notification data records are published and can be subscribed to. The consumer s
 |  |  |
 | --- | ---  | 
 |  **vhost**  | Provided to user |
-|  **Host**  | rmqserv001.avimesa.com |
+|  **Host**  | queues.avimesacorp.net |
 |  **Port**  | 5671 |
 |  **Credentials**  | Provided to user |
 |  **Queue**  | Name = `not_q`, Passive = True, Durable = True |
